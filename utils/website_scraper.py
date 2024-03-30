@@ -21,9 +21,21 @@ def run_playwright(url):
     return title, content
 
 
-def download_data(url):
-    # Function to download data from a given URL
-    # Example: Using requests library to download data
-    # data = requests.get(url).text
-    # return data
-    pass
+def run(playwright: Playwright) -> None:
+    browser = playwright.chromium.launch(headless=False)
+    context = browser.new_context()
+    page = context.new_page()
+    page.goto(
+        "https://123wrestling.com/watch-wwe-nxt-level-up-3-22-2024-march-22-2024/")
+    with page.expect_popup() as page1_info:
+        page.get_by_role("link", name=" FULL SHOW").first.click()
+    time.sleep(20)
+    page1 = page1_info.value
+    iframe_element = page1.query_selector('iframe')
+    # Get the value of the src attribute
+    src = iframe_element.get_attribute('src')
+    # ---------------------
+    context.close()
+    browser.close()
+
+    return src
