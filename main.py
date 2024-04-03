@@ -1,9 +1,11 @@
-from utils.sitemap_scraper import get_sitemap_links
-from utils.website_scraper import run_playwright
-from sites.site_scraper import LinksProcessor
-from utils.database import DatabaseHandler
+from py import process
+from utils.sitemap_scraper import get_sitemap_links  # Done
+from utils.website_scraper import run_playwright  # Currently Working on
+from utils.downloader import download_videos  # Done
+from sites.links_handler import LinksProcessor  # Under Progress 2/6
+from utils.database import DatabaseHandler  # Done
 
-# Importing Necessary Libs
+# Importing Necessary Libraries
 from dotenv import load_dotenv
 import os
 
@@ -11,7 +13,7 @@ import os
 load_dotenv()
 
 # Get the value of the environment variable 'POSTS_SITEMAP'
-SITEMAP = a if (a := os.getenv('POSTS_SITEMAP')) is not None else ''
+SITEMAP = os.getenv('POSTS_SITEMAP', '')
 
 
 def main():
@@ -26,26 +28,24 @@ def main():
         if links:
             # Initialize database handler
             db_handler = DatabaseHandler()
+            db_handler.create_table()
 
             # Initialize links processor
-            links_processor = LinksProcessor(links)
+            links_processor = LinksProcessor()
+            # Start playwright scraper for each processed link
+            try:
+                processed_links = run_playwright(links)
+                download_links = links_processor.dailymotion(
+                    links=processed_links)
+                # Still working on fixing this
+                data = download_videos(download_links)
+                db_handler.save_video(data)
 
-            # for link in links_processor:
-            #     # Process each link
-            #     processed_links = links_processor.process(link)
+            except Exception as e:
+                print(
+                    f"Error occurred while scraping link {processed_link}: {e}")
 
-            #     if processed_links:
-            #         # Start playwright scraper for each processed link
-            #         for processed_link in processed_links:
-            #             try:
-            #                 run_playwright(processed_link)
-            #             except Exception as e:
-            #                 print(f"Error occurred while scraping link {
-            #                       processed_link}: {e}")
-
-            #                 # Log the error or handle it as needed
-            #     else:
-            #         print(f"No processed links found for {link}")
+                # Log the error or handle it as needed
         else:
             print("No links found in the sitemap.")
 

@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 
 class DatabaseHandler:
@@ -12,10 +13,12 @@ class DatabaseHandler:
                             site TEXT,
                             title TEXT,
                             url TEXT,
-                            other_details TEXT)''')
+                            other_details JSON)''')
         self.conn.commit()
 
-    def save_video(self, site, title, url, other_details=None):
+    def save_video(self, data):
+        site, title, url, other_details = data
+        other_details = json.dumps(other_details)
         self.cursor.execute('''INSERT INTO videos (site, title, url, other_details)
                             VALUES (?, ?, ?, ?)''', (site, title, url, other_details))
         self.conn.commit()
